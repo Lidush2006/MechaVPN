@@ -121,7 +121,7 @@ class _ReportDialogState extends ConsumerState<_ReportDialog> {
 
   /// On the second page: the report is being made, or is made.
   var _sending = false;
-  var _channel = ReportChannel.telegram;
+  var _channel = ReportChannel.local;
 
   /// What leaves the device, as the core made it: the generic metadata to read, the sensitive part
   /// encrypted to the build's key (in the clear in a build without one).
@@ -323,16 +323,12 @@ class _ReportDialogState extends ConsumerState<_ReportDialog> {
         const SizedBox(height: 18),
         _DestinationPicker(
           selected: _channel,
-          recommended: ReportChannel.telegram,
+          recommended: ReportChannel.local,
           recommendedLabel: r.recommended,
-          // a report on its way to Hiddify stays there
           onChanged: uploading ? null : (channel) => setState(() => _channel = channel),
           options: [
-            (channel: ReportChannel.telegram, icon: FluentIcons.send_24_regular, label: 'Telegram'),
-            if (DiagnosticsSender.available)
-              (channel: ReportChannel.hiddify, icon: FluentIcons.cloud_arrow_up_24_regular, label: 'Hiddify'),
-            (channel: ReportChannel.email, icon: FluentIcons.mail_24_regular, label: r.email),
-            (channel: ReportChannel.github, icon: FluentIcons.code_24_regular, label: 'GitHub'),
+            // NYX: остаётся только сохранение отчёта на устройство —
+            // Telegram-бот, GitHub и почта принадлежали Hiddify.
             (channel: ReportChannel.local, icon: FluentIcons.phone_laptop_24_regular, label: r.localOnly),
           ],
         ),

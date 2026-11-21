@@ -5,8 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:hiddify/core/db/db.dart';
 import 'package:hiddify/core/localization/fallback_localizations.dart';
 import 'package:hiddify/core/localization/translations.dart';
-import 'package:hiddify/core/model/constants.dart';
-import 'package:hiddify/utils/uri_utils.dart';
 
 /// Shown on startup, before the app itself, when the saved data can not be opened: written by a
 /// newer version (the user went back to an older release), or broken, as by a failed migration.
@@ -86,11 +84,7 @@ class _Prompt extends StatelessWidget {
                 TextButton(onPressed: () => _confirmWipe(context), child: Text(newer.deleteData))
               else
                 FilledButton(onPressed: () => _confirmWipe(context), child: Text(broken.wipeData)),
-              if (_newer)
-                FilledButton(
-                  onPressed: () => UriUtils.tryLaunch(Uri.parse(Constants.githubLatestReleaseUrl)),
-                  child: Text(newer.downloadLatest),
-                ),
+              // NYX: кнопка «скачать последнюю версию» вела на релизы Hiddify — убрана.
             ],
           ),
         ),

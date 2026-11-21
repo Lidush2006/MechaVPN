@@ -9,6 +9,10 @@ part 'app_proxy_data_source.g.dart';
 
 abstract interface class AppProxyDataSource {
   Future<void> updatePkg({required String pkg, required AppProxyMode mode});
+
+  /// Adds [pkgs] as the user's own picks, skipping the ones already picked.
+  /// Unlike repeated [updatePkg] calls it never toggles anything off.
+  Future<int> addPkgs({required Iterable<String> pkgs, required AppProxyMode mode});
   Stream<List<AppProxyEntry>> watchAll({required AppProxyMode mode});
   Stream<List<AppProxyEntry>> watchFilterForDisplay({required Set<String> phonePkgs, required AppProxyMode mode});
   Stream<List<String>> watchActivePackages({required Set<String> phonePkgs, required AppProxyMode mode});
@@ -63,8 +67,37 @@ class AppProxyDao extends DatabaseAccessor<Db> with _$AppProxyDaoMixin, InfraLog
   }
 
   @override
-  Stream<List<AppProxyEntry>> watchAll({required AppProxyMode mode}) {
-    final query = select(appProxyEntries)..where((tbl) => tbl.mode.equalsValue(mode));
+  Future<int> addPkgs({required Iterable<String> pkgs, required AppProxyMode mode}) {
+    return transaction(() async {
+      var added = 0;
+      for (final pkg in pkgs.toSet()) {
+        final entry = await (select(
+          appProxyEntries,
+        )..where((tbl) => tbl.mode.equalsValue(mode) & tbl.pkgName.equals(pkg))).getSingleOrNull();
+
+        final selected = entry != null && !PkgFlag.forceDeselection.check(entry.flags);
+        if (selected) continue;
+
+        if (entry == null) {
+          await into(appProxyEntries).insert(
+            AppProxyEntriesCompanion.insert(mode: mode, pkgName: pkg, flags: Value(PkgFlag.userSelection.add(0))),
+          );
+        } else {
+          await (update(appProxyEntries)..where((tbl) => tbl.mode.equalsValue(mode) & tbl.pkgName.equals(pkg)))
+              .write(
+                AppProxyEntriesCompanion(
+                  flags: Value(PkgFlag.userSelection.add(PkgFlag.forceDeselection.remove(entry.flags))),
+                ),
+              );
+        }
+        added++;
+      }
+      return added;
+    });
+  }
+
+  @override
+  Stream<List<AppProxyEntry>> watchAll({required AppProxyMode mode}) {    final query = select(appProxyEntries)..where((tbl) => tbl.mode.equalsValue(mode));
     return query.watch();
   }
 

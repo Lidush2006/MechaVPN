@@ -104,14 +104,7 @@ class MyAdaptiveLayout extends HookConsumerWidget {
                           destinations: _navRailDests(_actions(t, showProfilesAction, isMobileBreakpoint)),
                           selectedIndex: navigationShell.currentIndex,
                           onDestinationSelected: (index) => _onTap(context, index),
-                          trailing: Breakpoint(context).isDesktop()
-                              ? const Expanded(
-                                  child: Align(
-                                    alignment: Alignment.bottomCenter,
-                                    child: SizedBox(width: 220, child: SideBarStatsOverview()),
-                                  ),
-                                )
-                              : null,
+
                         ),
                       ),
                       // Keeps the rail visible to screen readers (#2097).
@@ -127,10 +120,33 @@ class MyAdaptiveLayout extends HookConsumerWidget {
             bottomNavigationBar: isMobileBreakpoint
                 ? FocusScope(
                     node: navScopeNode,
-                    child: NavigationBar(
-                      selectedIndex: navigationShell.currentIndex <= 1 ? navigationShell.currentIndex : 0,
-                      destinations: _navDests(_actions(t, showProfilesAction, isMobileBreakpoint)),
-                      onDestinationSelected: (index) => _onTap(context, index),
+                    // NYX: плоская панель как в концепте — без пилюли, активный пункт подсвечен красным.
+                    child: NavigationBarTheme(
+                      data: NavigationBarThemeData(
+                        backgroundColor: Theme.of(context).colorScheme.surface,
+                        indicatorColor: Colors.transparent,
+                        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                          final selected = states.contains(WidgetState.selected);
+                          return TextStyle(
+                            fontSize: 11,
+                            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                            letterSpacing: 1.5,
+                            color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+                          );
+                        }),
+                        iconTheme: WidgetStateProperty.resolveWith((states) {
+                          final selected = states.contains(WidgetState.selected);
+                          return IconThemeData(
+                            size: 24,
+                            color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+                          );
+                        }),
+                      ),
+                      child: NavigationBar(
+                        selectedIndex: navigationShell.currentIndex <= 2 ? navigationShell.currentIndex : 0,
+                        destinations: _navDests(_actions(t, showProfilesAction, isMobileBreakpoint)),
+                        onDestinationSelected: (index) => _onTap(context, index),
+                      ),
                     ),
                   )
                 : null,
@@ -147,6 +163,7 @@ class MyAdaptiveLayout extends HookConsumerWidget {
 
   List<ShellRouteAction> _actions(Translations t, bool showProfilesAction, bool isMobileBreakpoint) => [
     ShellRouteAction(Icons.power_settings_new_rounded, t.pages.home.title),
+    if (isMobileBreakpoint) ShellRouteAction(Icons.shield_outlined, 'Мимо VPN'),
     if (showProfilesAction && !isMobileBreakpoint) ShellRouteAction(Icons.view_list_rounded, t.pages.profiles.title),
     ShellRouteAction(Icons.settings_rounded, t.pages.settings.title),
     if (!isMobileBreakpoint) ShellRouteAction(Icons.description_rounded, t.pages.logs.title),

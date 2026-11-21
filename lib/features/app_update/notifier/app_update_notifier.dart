@@ -47,6 +47,10 @@ class AppUpdateNotifier extends _$AppUpdateNotifier with AppLogger {
   );
 
   Future<AppUpdateState> check() async {
+    // ⬇⬇⬇ МЫ ДОБАВИЛИ ЭТУ СТРОКУ, ЧТОБЫ ОТКЛЮЧИТЬ ОБНОВЛЕНИЯ ⬇⬇⬇
+    return const AppUpdateState.disabled();
+    // ⬆⬆⬆ ВСЁ, ЧТО НИЖЕ, ТЕПЕРЬ НИКОГДА НЕ ВЫПОЛНИТСЯ ⬆⬆⬆
+
     loggy.debug("checking for update");
     state = const AppUpdateState.checking();
     final appInfo = ref.read(appInfoProvider).requireValue;

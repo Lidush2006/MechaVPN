@@ -75,6 +75,7 @@ class ProfileParser with InfraLogger {
     required String content,
     required String tempFilePath,
     required UserOverride? userOverride,
+    bool active = true,
   }) {
     return TaskEither.fromEither(populateHeaders(content: content)).flatMap(
       (populatedHeaders) => _expandLinksInFile(tempFilePath, null).flatMap(
@@ -83,7 +84,7 @@ class ProfileParser with InfraLogger {
             tempFilePath: tempFilePath,
             profile: ProfileEntity.local(
               id: id,
-              active: true,
+              active: active,
               name: '',
               lastUpdate: DateTime.now(),
               userOverride: userOverride,

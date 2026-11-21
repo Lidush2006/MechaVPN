@@ -8,6 +8,7 @@ import 'package:hiddify/features/app_based_routing/data/selected_data_provider.d
 import 'package:hiddify/features/app_based_routing/model/per_app_proxy_mode.dart';
 import 'package:hiddify/features/app_based_routing/overview/auto_selection_notifier.dart';
 import 'package:hiddify/features/settings/data/config_option_repository.dart';
+import 'package:hiddify/nyx/ru_app_presets.dart';
 import 'package:hiddify/utils/utils.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -81,6 +82,35 @@ class AppBasedRouting extends _$AppBasedRouting with AppLogger {
   Future<void> updateAutoSelection() async {
     final mode = _mode;
     if (mode != null) await _loading(() => _applyAutoSelection(mode));
+  }
+
+  /// NYX: один тап — установленные российские сервисы (банки, Госуслуги, ВК, Ozon…)
+  /// добавляются в режим «Bypass», то есть ходят в интернет напрямую, мимо туннеля.
+  ///
+  /// Возвращает, сколько приложений найдено на телефоне и сколько из них реально
+  /// добавлено (уже выбранные не считаются, поэтому повторный тап ничего не ломает).
+  Future<({int added, int found})> addRuPreset() async {
+    final installed = (await InstalledApps.getInstalledApps(
+      excludeSystemApps: false,
+      excludeNonLaunchableApps: false,
+      detectPlatformType: false,
+    )).map((e) => e.packageName).toSet();
+
+    final found = NyxRuPresets.packages.where(installed.contains).toList();
+    if (found.isEmpty) return (added: 0, found: 0);
+
+    // Пресет имеет смысл только в режиме «Bypass»: в «Proxy» список значил бы
+    // ровно обратное — «пускать через VPN только эти приложения».
+    final mode = _mode;
+    if (mode == null) {
+      await ref.read(Preferences.perAppProxyMode.notifier).update(AppProxyMode.exclude);
+      await setEnabled(true);
+    } else if (mode != AppProxyMode.exclude) {
+      await changeMode(AppProxyMode.exclude);
+    }
+
+    final added = await ref.read(appProxyDataSourceProvider).addPkgs(pkgs: found, mode: AppProxyMode.exclude);
+    return (added: added, found: found.length);
   }
 
   /// The new region's list isn't applied by itself: auto selection turns off, as with its switch.

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/notification/in_app_notification_controller.dart';
-import 'package:hiddify/core/preferences/general_preferences.dart';
 import 'package:hiddify/core/router/adaptive_layout/my_adaptive_layout.dart';
 import 'package:hiddify/core/router/bottom_sheets/bottom_sheets_notifier.dart';
 import 'package:hiddify/core/router/go_router/helper/active_breakpoint_notifier.dart';
@@ -11,7 +10,6 @@ import 'package:hiddify/core/router/go_router/refresh_listenable.dart';
 import 'package:hiddify/features/about/widget/about_page.dart';
 import 'package:hiddify/features/app_based_routing/overview/app_list_page.dart';
 import 'package:hiddify/features/home/widget/home_page.dart';
-import 'package:hiddify/features/intro/widget/intro_page.dart';
 import 'package:hiddify/features/log/overview/logs_page.dart';
 import 'package:hiddify/features/profile/details/profile_details_page.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
@@ -28,6 +26,7 @@ import 'package:hiddify/features/settings/overview/sections/inbound_options_page
 import 'package:hiddify/features/settings/overview/sections/routing_options_page.dart';
 import 'package:hiddify/features/settings/overview/sections/tls_tricks_page.dart';
 import 'package:hiddify/features/settings/overview/settings_page.dart';
+import 'package:hiddify/nyx/ru_presets_page.dart';
 import 'package:hiddify/utils/utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -36,6 +35,7 @@ part 'routing_config_notifier.g.dart';
 // each branch in go router has its own focus scope
 final branchesScope = <String, FocusScopeNode>{
   'home': FocusScopeNode(),
+  'bypass': FocusScopeNode(),
   'profiles': FocusScopeNode(),
   'settings': FocusScopeNode(),
   'logs': FocusScopeNode(),
@@ -48,11 +48,11 @@ final loadingConfig = RoutingConfig(
 );
 
 String getNameOfBranch(bool isMobileBreakpoint, bool showProfilesAction, int index) => isMobileBreakpoint
-    ? ['home', 'settings'][index]
+    ? ['home', 'bypass', 'settings'][index]
     : ['home', if (showProfilesAction) 'profiles', 'settings', 'logs', 'about'][index];
 
 int getIndexOfBranch(bool isMobileBreakpoint, bool showProfilesAction, String name) => isMobileBreakpoint
-    ? ['home', 'settings'].indexOf(name)
+    ? ['home', 'bypass', 'settings'].indexOf(name)
     : ['home', if (showProfilesAction) 'profiles', 'settings', 'logs', 'about'].indexOf(name);
 
 @Riverpod(keepAlive: true)
@@ -83,18 +83,10 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
           url = state.uri.queryParameters['url'];
         }
 
-        if (!ref.read(Preferences.introCompleted)) {
-          // Intro is not completed
-          return url != null ? '/intro?url=$url' : '/intro';
-        } else if (state.matchedLocation == '/intro') {
-          // Intro is completed
-          // Current page in '/intro'
-          if (url != null && Uri.parse(url).host == 'import') {
-            WidgetsBinding.instance.addPostFrameCallback(
-              (_) =>
-                  ref.read(bottomSheetsNotifierProvider.notifier).showAddProfile(url: url, triggeredByDeepLink: true),
-            );
-          }
+        // NYX: онбординг отключён. Сервер встроен в приложение, поэтому при
+        // первом запуске сразу открывается главный экран — без экрана
+        // приветствия и выбора языка.
+        if (state.matchedLocation == '/intro') {
           return '/home';
         } else if (url != null && Uri.parse(url).host == 'import') {
           // Auto import profile from url
@@ -148,6 +140,16 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
                 ),
               ],
             ),
+            if (isMobileBreakpoint)
+              StatefulShellBranch(
+                routes: <GoRoute>[
+                  GoRoute(
+                    name: 'bypass',
+                    path: '/bypass',
+                    builder: (_, _) => FocusScope(node: branchesScope['bypass'], child: const RuPresetsPage()),
+                  ),
+                ],
+              ),
             if (showProfilesAction)
               StatefulShellBranch(
                 routes: <GoRoute>[
@@ -245,6 +247,12 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
                           pageBuilder: (_, state) =>
                               customTransition(TransitionType.slide, state.pageKey, const AppListPage()),
                         ),
+                        GoRoute(
+                          name: 'ruPresets',
+                          path: 'ru-presets',
+                          pageBuilder: (_, state) =>
+                              customTransition(TransitionType.slide, state.pageKey, const RuPresetsPage()),
+                        ),
                       ],
                     ),
                     GoRoute(
@@ -311,7 +319,6 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
             ],
           ],
         ),
-        GoRoute(name: 'intro', path: '/intro', builder: (_, _) => const IntroPage()),
       ],
     );
   }

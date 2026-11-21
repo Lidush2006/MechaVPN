@@ -42,8 +42,9 @@ abstract interface class ProfileRepository {
     bool activate = false,
   });
 
-  /// Adds [content] as a local profile; returns its id.
-  TaskEither<ProfileFailure, String> addLocal(String content, {UserOverride? userOverride});
+  /// Adds [content] as a local profile; returns its id. [active] false adds it
+  /// without making it the profile the VPN connects through.
+  TaskEither<ProfileFailure, String> addLocal(String content, {UserOverride? userOverride, bool active = true});
   TaskEither<ProfileFailure, Unit> offlineUpdate(ProfileEntity nProfile, String nContent);
   TaskEither<ProfileFailure, Unit> validateConfig(String path, String tempPath, String? profileOverride, bool debug);
   TaskEither<ProfileFailure, String> generateConfig(String id);
@@ -242,7 +243,7 @@ class ProfileRepositoryImpl with ExceptionHandler, InfraLogger implements Profil
       });
 
   @override
-  TaskEither<ProfileFailure, String> addLocal(String content, {UserOverride? userOverride}) =>
+  TaskEither<ProfileFailure, String> addLocal(String content, {UserOverride? userOverride, bool active = true}) =>
       TaskEither.tryCatch(() async {
         final id = const Uuid().v4();
         final file = _profilePathResolver.file(id);
@@ -250,7 +251,7 @@ class ProfileRepositoryImpl with ExceptionHandler, InfraLogger implements Profil
         try {
           await tempFile.writeAsString(content);
           final task = _profileParser
-              .addLocal(id: id, content: content, tempFilePath: tempFile.path, userOverride: userOverride)
+              .addLocal(id: id, content: content, tempFilePath: tempFile.path, userOverride: userOverride, active: active)
               .flatMap(
                 (profEntity) =>
                     validateConfig(

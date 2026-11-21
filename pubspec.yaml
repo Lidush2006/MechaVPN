@@ -1,7 +1,7 @@
 name: hiddify
 description: Cross Platform Multi Protocol Proxy Frontend.
 publish_to: "none"
-version: 5.9.8+50908
+version: 1.0.1+60001
 
 environment:
   sdk: ^3.10.4
@@ -10,7 +10,7 @@ environment:
   # It is parsed/grep-ed by Makefile and Dockerfile to configure the build environment.
   # Ensure this matches the target Flutter version.
   flutter: ^3.38.5
-  
+
 dependencies:
   flutter:
     sdk: flutter
@@ -129,6 +129,7 @@ dependencies:
   battery_plus: ^7.1.2
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.13.1
   flutter_test:
     sdk: flutter
   lint: ^2.3.0
@@ -191,6 +192,14 @@ flutter:
     - family: Emoji
       fonts:
         - asset: assets/fonts/Emoji.ttf
+    # NYX: main UI font (bundled, works without internet)
+    - family: Exo2
+      fonts:
+        - asset: assets/fonts/Exo2-Regular.ttf
+        - asset: assets/fonts/Exo2-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Exo2-Bold.ttf
+          weight: 700
 
 flutter_gen:
   output: lib/gen/
@@ -223,3 +232,8 @@ sentry:
   upload_sources: true
   log_level: info
   ignore_missing: true
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/gear_icon.png"  # <-- сюда положи свою картинку 1024x1024

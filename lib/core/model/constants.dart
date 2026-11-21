@@ -3,7 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:hiddify/utils/utils.dart';
 
 abstract class Constants {
-  static const appName = "Hiddify";
+  static const appName = "MECHA VPN";
+  /// MECHA VPN is based on Hiddify (GPL-3.0). The GPL requires the source code of this build to be
+  /// available to everyone who gets the app: set this to the public repository before publishing.
+  static const sourceCodeUrl = "https://github.com/Lidush2006/MechaVPN";
+  static const hiddifyBaseUrl = "https://github.com/hiddify/hiddify-next";
   static const githubUrl = "https://github.com/hiddify/hiddify-next";
   static const licenseUrl = "https://github.com/hiddify/hiddify-next?tab=License-1-ov-file#readme";
   static const githubReleasesApiUrl = "https://api.github.com/repos/hiddify/hiddify-app/releases";

@@ -220,6 +220,8 @@ class _AppBasedRoutingSection extends ConsumerWidget {
             onTap: mode == null ? () => service.setEnabled(true) : null,
             trailing: Switch(value: mode != null, onChanged: service.setEnabled),
           ),
+          // NYX: пресет доступен и при выключенной маршрутизации — тап сам её включает.
+          const _RuPresetRow(),
           if (mode != null) ...[
             _AppListRow(mode: mode),
             if (region != Region.other) ...[
@@ -230,6 +232,26 @@ class _AppBasedRoutingSection extends ConsumerWidget {
           const Divider(height: 3, thickness: 3),
         ],
       ),
+    );
+  }
+}
+
+/// NYX: пресет «российские сервисы вне VPN» живёт на своей странице; здесь только вход в неё.
+class _RuPresetRow extends StatelessWidget {
+  const _RuPresetRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ListTile(
+      minTileHeight: 48,
+      horizontalTitleGap: 8,
+      titleTextStyle: theme.textTheme.bodyMedium,
+      leading: const Icon(Icons.shield_outlined),
+      title: const Text('Российские сервисы вне VPN'),
+      subtitle: const Text('Госуслуги, банки, ВК, Ozon — одним тапом', maxLines: 1, overflow: TextOverflow.ellipsis),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: () => context.pushNamed('ruPresets'),
     );
   }
 }

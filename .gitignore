@@ -79,3 +79,7 @@ windows/sign.cer
 /key.pem
 /sign.pfx
 .ci-secrets-export/
+
+# Build-time secrets (server links). Never commit.
+secrets.json
+

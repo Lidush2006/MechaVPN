@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The window behind the Hiddify logo until Flutter draws its first frame: the app's
-         background (the surface of its color scheme), so the hand-over does not flash -->
-    <color name="splash_background">#FBF8FF</color>
+    <!-- NYX: фон окна до первого кадра Flutter — фон темы МехаВПН
+         (#0B0B0E), чтобы переход не мигал белым. -->
+    <color name="splash_background">#0B0B0E</color>
 </resources>

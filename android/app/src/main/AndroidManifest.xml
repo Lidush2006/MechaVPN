@@ -31,8 +31,7 @@
         android:name=".Application"
         android:banner="@mipmap/ic_banner"
         android:icon="@mipmap/ic_launcher"
-        android:label="Hiddify"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="MECHA VPN"
         android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="31">
 
@@ -123,7 +122,7 @@
             android:name=".bg.TileService"
             android:directBootAware="true"
             android:exported="true"
-            android:icon="@drawable/ic_stat_logo"
+            android:icon="@mipmap/ic_launcher"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             tools:targetApi="n">
             <intent-filter>

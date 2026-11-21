@@ -3,45 +3,72 @@ import 'package:flutter/material.dart';
 import 'package:hiddify/core/theme/app_theme_mode.dart';
 import 'package:hiddify/core/theme/theme_extensions.dart';
 
+/// NYX theme: always dark, built from the exact colors of the design spec.
 class AppTheme {
   AppTheme(this.mode, this.fontFamily);
   final AppThemeMode mode;
   final String fontFamily;
 
-  ThemeData lightTheme(ColorScheme? lightColorScheme) {
-    final ColorScheme scheme = lightColorScheme ?? ColorScheme.fromSeed(seedColor: const Color(0xFF293CA0));
+  // ── NYX palette ──
+  static const _bg = Color(0xFF0B0B0E);
+  static const _panel = Color(0xFF15151A);
+  static const _panel2 = Color(0xFF1C1C22);
+  static const _border = Color(0xFF2A2A30);
+  static const _red = Color(0xFFE10600);
+  static const _redBright = Color(0xFFFF2A1A);
+  static const _brass = Color(0xFFC8962E);
+  static const _cyan = Color(0xFF00E5FF);
+  static const _text = Color(0xFFE8E8EC);
+  static const _muted = Color(0xFF8A8A92);
+
+  static const ColorScheme nyxScheme = ColorScheme(
+    brightness: Brightness.dark,
+    primary: _redBright,
+    onPrimary: Color(0xFF1A0200),
+    primaryContainer: Color(0xFF3A0A08),
+    onPrimaryContainer: Color(0xFFFFD9D4),
+    secondary: _brass,
+    onSecondary: Color(0xFF1A1200),
+    secondaryContainer: Color(0xFF3A2C0A),
+    onSecondaryContainer: Color(0xFFFFE9B8),
+    tertiary: _cyan,
+    onTertiary: Color(0xFF00171A),
+    error: _red,
+    onError: Colors.white,
+    surface: _bg,
+    onSurface: _text,
+    onSurfaceVariant: _muted,
+    outline: Color(0xFF3A3A44),
+    outlineVariant: _border,
+    surfaceContainerLowest: _bg,
+    surfaceContainerLow: _panel,
+    surfaceContainer: _panel,
+    surfaceContainerHigh: _panel2,
+    surfaceContainerHighest: _panel2,
+  );
+
+  ThemeData _nyxTheme() {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: scheme,
-      fontFamily: fontFamily,
+      brightness: Brightness.dark,
+      colorScheme: nyxScheme,
+      scaffoldBackgroundColor: _bg,
+      dividerTheme: const DividerThemeData(color: _border),
+      // the font is bundled in assets/fonts (see pubspec.yaml), so it works without internet
+      fontFamily: 'Exo2',
       extensions: const <ThemeExtension<dynamic>>{ConnectionButtonTheme.light},
     );
   }
 
-  ThemeData darkTheme(ColorScheme? darkColorScheme) {
-    final ColorScheme scheme =
-        darkColorScheme ?? ColorScheme.fromSeed(seedColor: const Color(0xFF293CA0), brightness: Brightness.dark);
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: scheme,
-      scaffoldBackgroundColor: mode.trueBlack ? Colors.black : scheme.surface,
-      fontFamily: fontFamily,
-      extensions: const <ThemeExtension<dynamic>>{ConnectionButtonTheme.light},
-    );
-  }
+  // The app is always dark: both modes give the same NYX theme.
+  ThemeData lightTheme(ColorScheme? lightColorScheme) => _nyxTheme();
+
+  ThemeData darkTheme(ColorScheme? darkColorScheme) => _nyxTheme();
 
   CupertinoThemeData cupertinoThemeData(bool sysDark, ColorScheme? lightColorScheme, ColorScheme? darkColorScheme) {
-    final bool isDark = switch (mode) {
-      AppThemeMode.system => sysDark,
-      AppThemeMode.light => false,
-      AppThemeMode.dark => true,
-      AppThemeMode.black => true,
-    };
-    final def = CupertinoThemeData(brightness: isDark ? Brightness.dark : Brightness.light);
-    // final def = CupertinoThemeData(brightness: Brightness.dark);
+    const def = CupertinoThemeData(brightness: Brightness.dark);
 
-    // return def;
-    final defaultMaterialTheme = isDark ? darkTheme(darkColorScheme) : lightTheme(lightColorScheme);
+    final defaultMaterialTheme = darkTheme(darkColorScheme);
     return MaterialBasedCupertinoThemeData(
       materialTheme: defaultMaterialTheme.copyWith(
         cupertinoOverrideTheme: def.copyWith(
@@ -56,7 +83,7 @@ class AppTheme {
             tabLabelTextStyle: def.textTheme.tabLabelTextStyle.copyWith(fontFamily: fontFamily),
           ).copyWith(),
           barBackgroundColor: def.barBackgroundColor,
-          scaffoldBackgroundColor: def.scaffoldBackgroundColor,
+          scaffoldBackgroundColor: _bg,
         ),
       ),
     );

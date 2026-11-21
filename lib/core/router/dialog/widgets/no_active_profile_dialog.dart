@@ -13,12 +13,15 @@ class NoActiveProfileDialog extends HookConsumerWidget {
       title: Text(t.dialogs.noActiveProfile.title),
       content: Text(t.dialogs.noActiveProfile.msg),
       actions: [
-        TextButton(
-          onPressed: () async {
-            await UriUtils.tryLaunch(Uri.parse(t.dialogs.noActiveProfile.helpBtn.url));
-          },
-          child: Text(t.dialogs.noActiveProfile.helpBtn.label),
-        ),
+        // NYX: ссылка на гайд Hiddify удалена — в этой сборке сервер уже встроен,
+        // диалог остаётся аварийным и не должен уводить на чужой сайт.
+        if (t.dialogs.noActiveProfile.helpBtn.url.isNotEmpty)
+          TextButton(
+            onPressed: () async {
+              await UriUtils.tryLaunch(Uri.parse(t.dialogs.noActiveProfile.helpBtn.url));
+            },
+            child: Text(t.dialogs.noActiveProfile.helpBtn.label),
+          ),
         TextButton(onPressed: () => context.pop(), child: Text(t.common.ok)),
       ],
     );

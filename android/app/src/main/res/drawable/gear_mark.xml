@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MECHA VPN gear mark. Drawn on a 108x108 viewport, centred at 54,54. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="1.0667"
+        android:scaleY="1.0667"
+        android:translateX="19.87"
+        android:translateY="19.87">
+        <path
+            android:pathData="M61.84 28.86L61.84 35.14L55.87 34.51L53.93 41.76L59.41 44.2L56.27 49.63L51.42 46.11L46.11 51.42L49.63 56.27L44.2 59.41L41.76 53.93L34.51 55.87L35.14 61.84L28.86 61.84L29.49 55.87L22.24 53.93L19.8 59.41L14.37 56.27L17.89 51.42L12.58 46.11L7.73 49.63L4.59 44.2L10.07 41.76L8.13 34.51L2.16 35.14L2.16 28.86L8.13 29.49L10.07 22.24L4.59 19.8L7.73 14.37L12.58 17.89L17.89 12.58L14.37 7.73L19.8 4.59L22.24 10.07L29.49 8.13L28.86 2.16L35.14 2.16L34.51 8.13L41.76 10.07L44.2 4.59L49.63 7.73L46.11 12.58L51.42 17.89L56.27 14.37L59.41 19.8L53.93 22.24L55.87 29.49Z"
+            android:strokeColor="#E10600"
+            android:strokeWidth="2.2"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000" />
+        <path
+            android:pathData="M32,17 A15,15 0 1,1 32,47 A15,15 0 1,1 32,17 Z"
+            android:strokeColor="#E10600"
+            android:strokeWidth="1.6"
+            android:fillColor="#00000000" />
+        <path
+            android:pathData="M32,19.2 A12.8,12.8 0 1,0 32,44.8 A12.8,12.8 0 1,0 32,19.2 Z"
+            android:strokeColor="#E10600"
+            android:strokeWidth="0.9"
+            android:strokeAlpha="0.45"
+            android:fillColor="#00000000" />
+        <path
+            android:pathData="M23.85 41.77 A9.6 9.6 0 1 0 40.15 41.77"
+            android:strokeColor="#E10600"
+            android:strokeWidth="2.2"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000" />
+        <path
+            android:pathData="M32,20.8 L32,31"
+            android:strokeColor="#E10600"
+            android:strokeWidth="2.2"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000" />
+    </group>
+</vector>

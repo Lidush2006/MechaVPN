@@ -16,7 +16,6 @@ import 'package:hiddify/features/proxy/model/proxy_entity.dart';
 import 'package:hiddify/features/proxy/overview/proxies_overview_notifier.dart';
 import 'package:hiddify/features/proxy/widget/proxy_type_label.dart';
 import 'package:hiddify/features/proxy/widget/upload_speed.dart';
-import 'package:hiddify/gen/assets.gen.dart';
 import 'package:hiddify/gen/fonts.gen.dart';
 import 'package:hiddify/hiddifycore/generated/v2/hcore/hcore.pb.dart';
 import 'package:hiddify/utils/custom_loggers.dart';
@@ -437,7 +436,7 @@ class _PinBadge extends StatelessWidget {
   }
 }
 
-/// The Hiddify logo as the signal: its three columns light like a phone's three bars.
+/// MECHA VPN: три полоски как индикатор сигнала (раньше здесь рисовался логотип Hiddify).
 class _Logo extends StatelessWidget {
   const _Logo(this.colors);
   final List<Color> colors;
@@ -463,38 +462,25 @@ class _Logo extends StatelessWidget {
 
   static const size = 13.0;
 
-  // where the logo's columns split, as parts of its width (assets/images/logo.svg, 64 wide)
-  static const _cuts = [0.0, 17.6 / 64, 45.6 / 64, 1.0];
-
   @override
   Widget build(BuildContext context) => SizedBox.square(
     dimension: size,
-    child: Stack(
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         for (var b = 0; b < 3; b++)
-          ClipRect(
-            clipper: _ColumnClip(_cuts[b], _cuts[b + 1]),
-            child: Assets.images.logo.svg(
-              width: size,
-              height: size,
-              colorFilter: ColorFilter.mode(colors[b], BlendMode.srcIn),
+          Container(
+            width: 3,
+            height: size * (0.45 + 0.275 * b),
+            decoration: BoxDecoration(
+              color: colors[b],
+              borderRadius: BorderRadius.circular(1.5),
             ),
           ),
       ],
     ),
   );
-}
-
-class _ColumnClip extends CustomClipper<Rect> {
-  const _ColumnClip(this.from, this.to);
-  final double from;
-  final double to;
-
-  @override
-  Rect getClip(Size size) => Rect.fromLTRB(size.width * from, 0, size.width * to, size.height);
-
-  @override
-  bool shouldReclip(_ColumnClip old) => old.from != from || old.to != to;
 }
 
 /// Searching: a magnifier circling slowly.
