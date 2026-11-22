@@ -29,6 +29,10 @@ SERVER_PORT = int(os.environ.get("SERVER_PORT", "8443"))
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 DB_PATH = os.environ.get("DB_PATH", "/var/lib/mecha/mecha.db")
 NEW_KEYS_PER_IP_PER_DAY = int(os.environ.get("NEW_KEYS_PER_IP_PER_DAY", "10"))
+# Free plan: 50 GB per user. 3X-UI stores `totalGB` in bytes, so the GB value is converted.
+FREE_LIMIT_GB = int(os.environ.get("FREE_LIMIT_GB", "50"))
+FREE_LIMIT_BYTES = FREE_LIMIT_GB * 1024**3
+FREE_RESET_DAYS = int(os.environ.get("FREE_RESET_DAYS", "30"))
 
 log = logging.getLogger("mecha")
 logging.basicConfig(level=logging.INFO)
@@ -62,8 +66,9 @@ async def _create_client(email: str, client_uuid: str) -> None:
         "enable": True,
         "flow": "xtls-rprx-vision",
         "limitIp": 2,
-        "totalGB": 0,
+        "totalGB": FREE_LIMIT_BYTES,
         "expiryTime": 0,
+        "reset": FREE_RESET_DAYS,  # monthly traffic reset, if this panel version supports it
     }
     verify = PANEL_CA or False
     async with httpx.AsyncClient(verify=verify, timeout=15) as http:
