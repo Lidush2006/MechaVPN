@@ -1,36 +1,31 @@
 # MECHA VPN backend
 
-Один сервис на вашем VPS (`45.155.71.152`):
-- `POST /api/v1/key` — приложение присылает анонимный ID устройства и получает свой VLESS-ключ.
-- Telegram-бот — на `/start` выдаёт ключ тому, кто написал.
+Один сервис, который выдаёт каждому пользователю персональные ключи на все серверы.
 
-Клиентов создаёт 3X-UI через API. Секреты только в переменных окружения, в git их нет.
+- `POST /api/v1/device-key` — приложение присылает анонимный ID устройства, получает ключи.
+- `POST /api/v1/google-login` — вход через Google, ключи выдаются тому же пользователю.
+- Telegram-бот — на `/start` выдаёт ключи.
+
+Один пользователь получает **один UUID на всех серверах**, поэтому приложение может переключаться между серверами без новых ключей.
 
 ## 1. Переменные окружения
 
-Создайте `/etc/mecha/mecha.env` (права только для root):
+Файл `/etc/mecha/mecha.env` (права только для root, `chmod 600`):
 
 ```
-PANEL_URL=https://45.155.71.152:2053
-PANEL_TOKEN=ВАШ_API_ТОКЕН_ИЗ_ПАНЕЛИ
-PANEL_CA=
-INBOUND_ID=1
-SERVER_HOST=45.155.71.152
-SERVER_PORT=8443
+SERVERS=[{"name":"AT","panel_url":"https://45.155.71.152:2053","panel_token":"ТОКЕН_1","panel_ca":"","inbound_id":1,"host":"45.155.71.152","port":8443,"reality":null},{"name":"DE","panel_url":"https://ВТОРОЙ_СЕРВЕР:ПОРТ_ПАНЕЛИ/ПУТЬ","panel_token":"ТОКЕН_2","panel_ca":"","inbound_id":1,"host":"ВТОРОЙ_IP","port":443,"reality":{"pbk":"ПУБЛИЧНЫЙ_КЛЮЧ","sid":"a6","sni":"www.microsoft.com","spx":"/f7288fdee76911a"}}]
+GOOGLE_WEB_CLIENT_ID=ИДЕНТИФИКАТОР_WEB_КЛИЕНТА.apps.googleusercontent.com
 BOT_TOKEN=НОВЫЙ_ТОКЕН_БОТА
 DB_PATH=/var/lib/mecha/mecha.db
-NEW_KEYS_PER_IP_PER_DAY=10
 FREE_LIMIT_GB=50
 FREE_RESET_DAYS=30
+NEW_KEYS_PER_IP_PER_DAY=10
 ```
 
-Лимит бесплатного режима: 50 ГБ, сброс каждые 30 дней. В 3X-UI поле `totalGB` хранится в байтах, сервер сам переводит ГБ в байты. После первого клиента проверьте в панели, что у него лимит 50 ГБ, а не 50 Б. Если сброс по дням не поддерживается, поле `reset` просто игнорируется, и тогда сбрасывать лимит придётся вручную.
-
-```
-chmod 600 /etc/mecha/mecha.env
-```
-
-`PANEL_CA` оставьте пустым, если панель на самоподписанном сертификате. Тогда проверка сертификата панели отключена, это допустимо, потому что запросы идут на ваш же сервер.
+- `reality: null` — сервер на TLS (старый, 45.155.71.152).
+- Сервер с `reality` — подключение REALITY (новый, 213.165.35.253). Значения `pbk`, `sid`, `sni`, `spx` берите из панели того сервера.
+- `panel_token` — API-токен из панели каждого сервера. Не публикуйте его.
+- Порт и путь панели для нового сервера: `https://213.165.35.253:61132`, если путь пустой — оставьте без него.
 
 ## 2. Установка
 
@@ -41,26 +36,13 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-Скопируйте сюда `mecha_server.py` и `requirements.txt` из папки `server/` репозитория.
+Скопируйте `mecha_server.py` и `requirements.txt` из `server/`.
 
-## 3. Сертификат Let's Encrypt на IP-адрес
+## 3. Сертификат на IP
 
-Порт 80 должен быть свободен на время выпуска (certbot сам поднимет проверку).
+Для старого сервера сертификат Let's Encrypt на IP уже выпущен (его продлевает `x-ui`). Для самого backend нужен HTTPS, поэтому используем тот же сертификат или отдельный, выпущенный через certbot на IP. Команды выполнит владелец сервера.
 
-```
-apt install -y certbot
-certbot certonly --standalone --preferred-profile shortlived -d 45.155.71.152
-```
-
-Сертификат короткоживущий (примерно неделю), поэтому продление нужно автоматизировать. Certbot ставит таймер сам; проверьте его командой `systemctl list-timers | grep certbot`. После продления нужно перезапускать сервис, см. ниже (`--deploy-hook`).
-
-Пути к файлам: `/etc/letsencrypt/live/45.155.71.152/fullchain.pem` и `privkey.pem`.
-
-Если certbot ругается на флаг `--preferred-profile`, пришлите вывод ошибки.
-
-## 4. Запуск на порту 443
-
-Порт 443 свободен: VLESS работает на 8443, панель на 2053.
+## 4. Запуск
 
 `/etc/systemd/system/mecha.service`:
 
@@ -82,23 +64,22 @@ WantedBy=multi-user.target
 ```
 systemctl daemon-reload
 systemctl enable --now mecha
-systemctl status mecha
-```
-
-Продление сертификата должно перезапускать сервис:
-
-```
-certbot renew --deploy-hook "systemctl restart mecha"
 ```
 
 ## 5. Проверка
 
-С любого устройства (например, с телефона через мобильный интернет):
-
 ```
-curl -s -X POST https://45.155.71.152/api/v1/key -H "Content-Type: application/json" -d '{"device_id":"test-device-0001"}'
+curl -s -X POST https://45.155.71.152/api/v1/device-key -H "Content-Type: application/json" -d '{"device_id":"test-device-0001"}'
 ```
 
-Ожидаем ответ с полем `link` (`vless://...`). Если в ответе ошибка панели, пришлите её текст — обычно дело в формате тела запроса или в правах токена.
+В ответе должен быть список `links` — по одной ссылке на каждый доступный сервер.
 
-Бот: напишите `/start` вашему боту — он пришлёт ключ.
+## 6. Google-вход: что настроить
+
+1. Google Cloud Console → создать проект.
+2. **OAuth consent screen** → External → заполнить название и почту.
+3. **Credentials → Create credentials → OAuth client ID**:
+   - тип **Web application** — его Client ID идёт в `GOOGLE_WEB_CLIENT_ID`;
+   - тип **Android**, package `com.mechavpn.app`, SHA-1 отпечаток ключа подписи:
+     `F9:A0:CE:72:58:44:BF:E4:9B:B4:56:9A:92:90:30:55:E1:48:7B:AE`
+4. Пока приложение в режиме «Testing», входить смогут только добавленные тестовые пользователи. Для публичного запуска нужно опубликовать OAuth-приложение.
